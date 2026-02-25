@@ -593,6 +593,33 @@ function maybeRepairDiscordNumericIds(cfg: OpenClawConfig): {
   return { config: next, changes };
 }
 
+function maybeRepairDiscordConfig(cfg: OpenClawConfig): {
+  config: OpenClawConfig;
+  changes: string[];
+} {
+  const changes: string[] = [];
+  const next = structuredClone(cfg);
+
+  const repairAccount = (prefix: string, account: Record<string, unknown>) => {
+    if (typeof account.botToken === "string" && account.botToken.trim()) {
+      if (!account.token) {
+        account.token = account.botToken;
+        delete account.botToken;
+        changes.push(`- ${prefix}: renamed botToken to token`);
+      } else if (account.token === account.botToken) {
+        delete account.botToken;
+        changes.push(`- ${prefix}: removed redundant botToken (matches token)`);
+      }
+    }
+  };
+
+  for (const scope of collectDiscordAccountScopes(next)) {
+    repairAccount(scope.prefix, scope.account);
+  }
+
+  return { config: next, changes };
+}
+
 type MutableAllowlistHit = {
   channel: string;
   path: string;
@@ -1436,6 +1463,14 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
       candidate = discordRepair.config;
       pendingChanges = true;
       cfg = discordRepair.config;
+    }
+
+    const discordConfigRepair = maybeRepairDiscordConfig(candidate);
+    if (discordConfigRepair.changes.length > 0) {
+      note(discordConfigRepair.changes.join("\n"), "Doctor changes");
+      candidate = discordConfigRepair.config;
+      pendingChanges = true;
+      cfg = discordConfigRepair.config;
     }
 
     const allowFromRepair = maybeRepairOpenPolicyAllowFrom(candidate);

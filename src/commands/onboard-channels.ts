@@ -448,11 +448,11 @@ export async function setupChannels(
   };
 
   const ensureBundledPluginEnabled = async (channel: ChannelChoice): Promise<boolean> => {
+    const result = enablePluginInConfig(next, channel);
+    next = result.config;
     if (getChannelPlugin(channel)) {
       return true;
     }
-    const result = enablePluginInConfig(next, channel);
-    next = result.config;
     if (!result.enabled) {
       await prompter.note(
         `Cannot enable ${channel}: ${result.reason ?? "plugin disabled"}.`,

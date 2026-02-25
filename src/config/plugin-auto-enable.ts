@@ -91,8 +91,8 @@ const STRUCTURED_CHANNEL_CONFIG_SPECS: Record<string, StructuredChannelConfigSpe
   },
   discord: {
     envAny: ["DISCORD_BOT_TOKEN"],
-    stringKeys: ["token"],
-    accountStringKeys: ["token"],
+    stringKeys: ["token", "botToken"],
+    accountStringKeys: ["token", "botToken"],
   },
   irc: {
     envAll: ["IRC_HOST", "IRC_NICK"],
